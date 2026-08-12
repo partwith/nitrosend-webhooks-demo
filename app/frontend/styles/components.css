@@ -1,0 +1,44 @@
+@reference "./theme.css";
+
+html { font-size: 15px; font-family: Inter, system-ui, sans-serif; }
+
+.button { @apply inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-semibold cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:opacity-50 disabled:cursor-not-allowed; }
+.button.primary, .button.cta { @apply bg-brand-600 text-white hover:bg-brand-500; }
+.button.secondary { @apply bg-surface text-default ring-1 ring-inset ring-border shadow-sm hover:bg-surface-hover dark:shadow-none; }
+.button.danger-soft { @apply bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50; }
+.button.ghost { @apply text-muted hover:bg-surface-hover hover:text-default; }
+.button.sm { @apply px-2.5 py-1.5 text-xs; }
+
+.card { @apply bg-surface rounded-xl ring-1 ring-border; }
+.card-header { @apply px-5 py-4 border-b border-divider; }
+.card-title { @apply font-semibold text-default; }
+.card-subtitle { @apply text-sm text-muted; }
+.card-body { @apply px-5 py-4; }
+
+.badge { @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium; }
+.badge.green { @apply bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-900/30 dark:text-green-400; }
+.badge.yellow { @apply bg-yellow-50 text-yellow-800 ring-1 ring-inset ring-yellow-600/20 dark:bg-yellow-900/30 dark:text-yellow-400; }
+.badge.red { @apply bg-red-50 text-red-600 ring-1 ring-inset ring-red-600/20 dark:bg-red-900/30 dark:text-red-400; }
+.badge.gray { @apply bg-surface-sunken text-muted ring-1 ring-inset ring-border; }
+
+.default-input { @apply block w-full rounded-md bg-surface px-2.5 py-2 text-sm text-default ring-1 ring-inset ring-border-strong placeholder:text-subtle focus:ring-2 focus:ring-inset focus:ring-brand-600 outline-none; }
+.default-checkbox { @apply h-4 w-4 rounded border-border-strong text-brand-600 focus:ring-brand-600; }
+.input-hint { @apply text-xs text-muted; }
+.input-error { @apply text-xs text-red-500; }
+.input-switch { @apply relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full bg-faint transition-colors; }
+.input-switch.checked { @apply bg-brand-600; }
+.input-switch .knob { @apply pointer-events-none absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform; }
+.input-switch.checked .knob { @apply translate-x-5; }
+
+.eyebrow { @apply text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle; }
+.mono { @apply font-mono text-[13px]; }
+.alert { @apply px-4 py-3 rounded-lg text-sm font-medium; }
+.alert.info { @apply bg-blue-50 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300; }
+.alert.danger { @apply bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400; }
+
+.table-base { @apply w-full text-sm; }
+.table-base thead th { @apply bg-surface-sunken text-left text-xs font-medium text-muted px-4 py-2.5 first:rounded-l-lg last:rounded-r-lg; }
+.table-base tbody td { @apply px-4 py-3 border-b border-divider; }
+.table-base tbody tr { @apply hover:bg-surface-hover cursor-pointer; }
+.row-pulse { animation: rowpulse 1.2s ease-out 1; }
+@keyframes rowpulse { 0% { background-color: color-mix(in oklab, var(--color-brand-50), transparent 20%); } 100% { background-color: transparent; } }
