@@ -35,6 +35,14 @@ RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential git libpq-dev libvips libyaml-dev pkg-config && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
+# Install Node.js + npm (needed by vite_rails' assets:precompile, which shells
+# out to `npx vite build`). Not installed in the final stage since Vite
+# assets are static files by the time the runtime image runs.
+ARG NODE_VERSION=22
+RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - && \
+    apt-get install --no-install-recommends -y nodejs && \
+    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+
 # Install application gems
 COPY vendor/* ./vendor/
 COPY Gemfile Gemfile.lock ./
@@ -46,6 +54,9 @@ RUN bundle install && \
 
 # Copy application code
 COPY . .
+
+# Install npm packages needed by vite_rails to build assets
+RUN npm ci
 
 # Precompile bootsnap code for faster boot times.
 # -j 1 disable parallel compilation to avoid a QEMU bug: https://github.com/rails/bootsnap/issues/495
