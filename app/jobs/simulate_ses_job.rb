@@ -15,6 +15,7 @@ class SimulateSesJob < ApplicationJob
     workspace = message.workspace
     message.update!(status: event_type == "complaint" ? "complained" : "bounced",
                     status_reason: Webhooks::Payload::DETAILS.fetch(event_type)[:reason])
+    WorkspaceBroadcaster.message_updated(message)
 
     if %w[hard_bounce complaint].include?(event_type)
       workspace.suppressions.create_or_find_by!(email: message.recipient) do |s|
@@ -22,6 +23,7 @@ class SimulateSesJob < ApplicationJob
         s.event_type = event_type
       end
     end
+    WorkspaceBroadcaster.booking_updated(message.booking.reload) if message.booking
 
     event = workspace.webhook_events.create!(event_type:, message:, occurred_at: Time.current, payload: {})
     event.update!(payload: Webhooks::Payload.for(event))
