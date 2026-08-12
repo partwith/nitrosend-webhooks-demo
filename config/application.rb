@@ -38,5 +38,8 @@ module NitrosendWebhooksDemo
 
     # Don't generate system test files.
     config.generators.system_tests = nil
+
+    config.active_job.queue_adapter = :good_job
+    config.x.ses_delay = 5.seconds
   end
 end

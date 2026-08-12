@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+@plugin "@tailwindcss/forms";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-brand-50: #FFF5F0;
+  --color-brand-100: #FFE6D9;
+  --color-brand-200: #FFBF99;
+  --color-brand-300: #FF9966;
+  --color-brand-400: #FF6B2C;
+  --color-brand-500: #FF4D00;
+  --color-brand-600: #CC3D00;
+  --color-brand-700: #992E00;
+  --color-brand-800: #661F00;
+  --color-brand-900: #331000;
+  --color-brand-950: #1A0800;
+  --color-brand: #FF4D00;
+  --color-current: currentColor;
+  --color-default: #1c1917;
+
+  /* Editorial display serif (the brand face), used as a restrained accent on
+     stage titles and hero figures. Georgia is the instant fallback. */
+  --font-serif: 'Newsreader', Georgia, 'Times New Roman', serif;
+
+  --color-surface: #ffffff;
+  --color-surface-raised: #ffffff;
+  --color-surface-sunken: #f5f3ef;       /* warm stone (same lightness as stone-100, real warmth) */
+  --color-surface-overlay: #ffffff;
+  --color-surface-hover: #efece9;        /* warm stone — list/menu/row hover */
+  --color-foreground: #1c1917;           /* stone-900 */
+  --color-muted: #78716c;                /* stone-500 */
+  --color-subtle: #a8a29e;               /* stone-400 */
+  --color-faint: #d6d3d1;                /* stone-300 */
+  --color-border: #e7e5e4;               /* stone-200 */
+  --color-border-strong: #d6d3d1;        /* stone-300 */
+  --color-divider: #f5f5f4;              /* stone-100 */
+  --color-page-tint: #F6F3F1;
+}
+
+@layer base {
+  .dark {
+    /* Dark mode keeps the original cool-neutral palette - stone's
+       warm-neutral steps don't have enough contrast separation in the
+       dark range, so borders/dividers disappear on raised surfaces. */
+    --color-default: #F5F3F7;
+    --color-surface: #111113;
+    --color-surface-raised: #1A1A1E;
+    --color-surface-sunken: #08080A;
+    --color-surface-overlay: #1A1A1E;
+    --color-surface-hover: #232228;      /* one step above raised — hover */
+    --color-foreground: #E8E6EC;
+    --color-muted: #8E8B96;
+    --color-subtle: #64616D;
+    /* Alpha borders: adapt to whatever surface they sit on. Matches the
+       modern dark-theme convention used by Linear / Vercel / Stripe and
+       keeps contrast consistent across surface, surface-raised, and
+       surface-sunken without per-component overrides. */
+    --color-faint: rgb(255 255 255 / 0.06);
+    --color-border: rgb(255 255 255 / 0.08);
+    --color-border-strong: rgb(255 255 255 / 0.14);
+    --color-divider: rgb(255 255 255 / 0.05);
+    --color-page-tint: #0D0A08;
+  }
+}
+
+@source inline("max-w-xs max-w-sm max-w-md max-w-lg max-w-xl max-w-2xl max-w-3xl max-w-4xl max-w-5xl max-w-6xl max-w-7xl bg-red-500 bg-blue-500 bg-green-500 bg-yellow-500 bg-purple-500 bg-pink-500 bg-indigo-500 bg-gray-500 bg-orange-500 bg-teal-500 bg-cyan-500 bg-emerald-500 bg-amber-500");
