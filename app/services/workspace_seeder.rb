@@ -8,12 +8,10 @@ class WorkspaceSeeder
 
   def self.seed(workspace, base_url:)
     BOOKINGS.each { |attrs| workspace.bookings.create!(**attrs) }
-    if defined?(WebhookEndpoint)
-      workspace.webhook_endpoints.create!(
-        url: "#{base_url}/wtm/webhooks/#{workspace.token}",
-        description: "WeTeachMe booking system (built-in demo receiver)",
-        events: %w[hard_bounce soft_bounce complaint],
-      )
-    end
+    workspace.webhook_endpoints.create!(
+      url: "#{base_url}/wtm/webhooks/#{workspace.token}",
+      description: "WeTeachMe booking system (built-in demo receiver)",
+      events: %w[hard_bounce soft_bounce complaint],
+    )
   end
 end
