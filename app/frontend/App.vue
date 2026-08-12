@@ -12,11 +12,22 @@ const bookings = useBookingsStore()
 
 function toggleDark() { document.documentElement.classList.toggle("dark") }
 
+// ActionCable fallback: if the socket dropped while the tab was backgrounded,
+// refetch whatever's on screen the moment the tab regains focus so the demo
+// never looks stale even if the live channel silently disconnected.
+function refetchOnFocus() {
+  if (document.visibilityState === "hidden") return
+  if (isWtm.value) bookings.fetchAll()
+  else if (route.params.id) deliveries.fetchForEndpoint(route.params.id)
+}
+
 onMounted(() => {
   subscribeWorkspace((msg) => {
     if (msg.type === "delivery.updated") deliveries.upsert(msg.data)
     if (msg.type === "booking.updated") bookings.upsert(msg.data)
   })
+  addEventListener("focus", refetchOnFocus)
+  document.addEventListener("visibilitychange", refetchOnFocus)
 })
 </script>
 

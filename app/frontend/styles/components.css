@@ -9,7 +9,11 @@ html { font-size: 15px; font-family: Inter, system-ui, sans-serif; }
 .button.ghost { @apply text-muted hover:bg-surface-hover hover:text-default; }
 .button.sm { @apply px-2.5 py-1.5 text-xs; }
 
-.card { @apply bg-surface rounded-xl ring-1 ring-border; }
+/* min-w-0 keeps cards from being forced wide by a nested overflow-x-auto
+   table's min-content size when the card sits in a CSS grid (grid items
+   default to min-width:auto) — without it, mobile viewports scroll the
+   whole page instead of just the table. */
+.card { @apply bg-surface rounded-xl ring-1 ring-border min-w-0; }
 .card-header { @apply px-5 py-4 border-b border-divider; }
 .card-title { @apply font-semibold text-default; }
 .card-subtitle { @apply text-sm text-muted; }
