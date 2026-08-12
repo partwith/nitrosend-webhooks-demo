@@ -1,15 +1,17 @@
 <script setup>
-import { computed, onMounted, reactive, watch } from "vue"
+import { computed, onMounted, reactive, ref, watch } from "vue"
 import { useRoute } from "vue-router"
 import { useEndpointsStore } from "../stores/endpoints"
 import SecretCard from "../components/SecretCard.vue"
 import DeliveryLog from "../components/DeliveryLog.vue"
 import DeliverySlideOver from "../components/DeliverySlideOver.vue"
+import TestEventModal from "../components/TestEventModal.vue"
 
 const route = useRoute()
 const store = useEndpointsStore()
 const endpoint = computed(() => store.byId(route.params.id))
 const form = reactive({ url: "", description: "", events: [], error: null, dirty: false, saving: false })
+const testEventModalOpen = ref(false)
 const EVENTS = [["hard_bounce", "Hard bounce"], ["soft_bounce", "Soft bounce"], ["complaint", "Spam complaint"]]
 
 onMounted(async () => { await store.fetchOne(route.params.id); reset() })
@@ -36,7 +38,7 @@ async function toggleEnabled() {
     <RouterLink to="/" class="text-sm text-muted hover:text-default">← Webhooks</RouterLink>
     <div class="mt-2 mb-6 flex items-center justify-between gap-4">
       <h1 class="mono truncate text-lg font-semibold">{{ endpoint.url }}</h1>
-      <!-- Test-event button mounts here in Task 16 -->
+      <button class="button secondary" @click="testEventModalOpen = true">Send test event</button>
     </div>
 
     <div class="grid gap-6">
@@ -78,5 +80,7 @@ async function toggleEnabled() {
     </div>
 
     <DeliverySlideOver v-if="route.params.deliveryId" />
+
+    <TestEventModal :open="testEventModalOpen" :endpoint="endpoint" @close="testEventModalOpen = false" />
   </div>
 </template>
