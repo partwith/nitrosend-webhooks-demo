@@ -24,6 +24,11 @@
      stage titles and hero figures. Georgia is the instant fallback. */
   --font-serif: 'Newsreader', Georgia, 'Times New Roman', serif;
 
+  /* Code, tokens, IDs, API keys, raw values (DESIGN.md section 3). Loaded via
+     @fontsource/jetbrains-mono in the entrypoint; ui-monospace/monospace
+     are the fallback stack until/unless that font-face loads. */
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
   --color-surface: #ffffff;
   --color-surface-raised: #ffffff;
   --color-surface-sunken: #f5f3ef;       /* warm stone (same lightness as stone-100, real warmth) */
