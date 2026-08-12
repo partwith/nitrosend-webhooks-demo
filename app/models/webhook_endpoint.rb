@@ -18,4 +18,12 @@ class WebhookEndpoint < ApplicationRecord
   end
 
   def subscribed_to?(event_type) = enabled? && events.include?(event_type)
+
+  def as_api_json
+    {
+      id:, url:, description:, enabled:, events:, signing_secret:, secret_rotated_at:, created_at:,
+      last_delivery_at: webhook_deliveries.maximum(:created_at),
+      recent_failure: webhook_deliveries.where(status: %w[failed retrying]).where(created_at: 24.hours.ago..).exists?,
+    }
+  end
 end

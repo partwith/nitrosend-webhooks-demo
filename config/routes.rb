@@ -4,6 +4,17 @@ Rails.application.routes.draw do
 
   namespace :api do
     resources :messages, only: :create
+    resources :endpoints, only: %i[index show create update] do
+      member do
+        post :rotate_secret
+        post :test_events
+      end
+      resources :deliveries, only: :index
+    end
+    resources :deliveries, only: :show
+    resources :bookings, only: :index do
+      member { post :send_confirmation }
+    end
   end
 
   post "wtm/webhooks/:workspace_token", to: "wtm/webhooks#create"
