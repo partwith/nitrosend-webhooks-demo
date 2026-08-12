@@ -3,6 +3,8 @@ import { computed, onMounted, reactive, watch } from "vue"
 import { useRoute } from "vue-router"
 import { useEndpointsStore } from "../stores/endpoints"
 import SecretCard from "../components/SecretCard.vue"
+import DeliveryLog from "../components/DeliveryLog.vue"
+import DeliverySlideOver from "../components/DeliverySlideOver.vue"
 
 const route = useRoute()
 const store = useEndpointsStore()
@@ -72,7 +74,9 @@ async function toggleEnabled() {
 
       <SecretCard :endpoint="endpoint" />
 
-      <!-- Delivery log mounts here in Task 15 -->
+      <DeliveryLog :endpoint-id="route.params.id" />
     </div>
+
+    <DeliverySlideOver v-if="route.params.deliveryId" />
   </div>
 </template>
