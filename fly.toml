@@ -1,0 +1,20 @@
+app = "nitrosend-webhooks-demo"
+primary_region = "syd"
+
+[build]
+
+[env]
+  RAILS_LOG_TO_STDOUT = "true"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = false
+  min_machines_running = 1
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+
+[deploy]
+  release_command = "bin/rails db:prepare"

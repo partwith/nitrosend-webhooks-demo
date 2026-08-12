@@ -30,6 +30,12 @@ Rails.application.configure do
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   config.force_ssl = true
 
+  # Run GoodJob workers in-process with Puma (single machine deploy on Fly.io).
+  config.good_job.execution_mode = :async
+
+  # Allow ActionCable connections from the Fly.io app domain and the configured APP_URL.
+  config.action_cable.allowed_request_origins = [%r{https://.*\.fly\.dev}, ENV["APP_URL"]].compact
+
   # Skip http-to-https redirect for the default health check endpoint.
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
 
