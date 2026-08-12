@@ -1,3 +1,68 @@
 class WebhookDeliveryJob < ApplicationJob
-  def perform(delivery_id); end
+  RETRY_SCHEDULE = [30.seconds, 2.minutes, 10.minutes, 30.minutes].freeze
+  MAX_ATTEMPTS = 5
+  EXCERPT_LIMIT = 1000
+
+  def perform(delivery_id)
+    delivery = WebhookDelivery.find_by(id: delivery_id)
+    return unless delivery && %w[pending retrying].include?(delivery.status)
+
+    endpoint = delivery.webhook_endpoint
+    guard = Webhooks::UrlGuard.check(endpoint.url)
+    number = delivery.attempts_count + 1
+
+    if guard.ok?
+      attempt_http(delivery, endpoint, guard, number)
+    else
+      delivery.delivery_attempts.create!(number:, error: "URL #{guard.error}")
+      delivery.update!(status: "failed", attempts_count: number, next_retry_at: nil)
+    end
+    WorkspaceBroadcaster.delivery_updated(delivery.reload)
+  end
+
+  private
+
+  def attempt_http(delivery, endpoint, guard, number)
+    body = delivery.webhook_event.payload.to_json
+    timestamp = Time.current.to_i
+    headers = {
+      "Content-Type" => "application/json",
+      "User-Agent" => "Nitrosend-Webhooks-Demo/1.0",
+      "X-Nitrosend-Event" => delivery.webhook_event.event_type,
+      "X-Nitrosend-Timestamp" => timestamp.to_s,
+      "X-Nitrosend-Signature" => Webhooks::Signer.signature(secret: endpoint.signing_secret, timestamp:, body:),
+    }
+
+    started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    response = post(guard, headers, body)
+    latency_ms = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started) * 1000).round
+
+    delivery.delivery_attempts.create!(
+      number:, request_headers: headers, latency_ms:,
+      http_status: response.is_a?(Net::HTTPResponse) ? response.code.to_i : nil,
+      response_excerpt: response.is_a?(Net::HTTPResponse) ? response.body.to_s.first(EXCERPT_LIMIT) : nil,
+      error: response.is_a?(String) ? response : nil,
+    )
+
+    if response.is_a?(Net::HTTPResponse) && response.code.to_i.between?(200, 299)
+      delivery.update!(status: "delivered", attempts_count: number, next_retry_at: nil)
+    elsif number >= MAX_ATTEMPTS
+      delivery.update!(status: "failed", attempts_count: number, next_retry_at: nil)
+    else
+      wait = RETRY_SCHEDULE[number - 1]
+      delivery.update!(status: "retrying", attempts_count: number, next_retry_at: wait.from_now)
+      self.class.set(wait:).perform_later(delivery.id)
+    end
+  end
+
+  # Returns Net::HTTPResponse on any HTTP response, String error message otherwise.
+  def post(guard, headers, body)
+    uri = guard.uri
+    Net::HTTP.start(uri.host, uri.port, ipaddr: guard.ip, use_ssl: uri.scheme == "https",
+                    open_timeout: 5, read_timeout: 5, write_timeout: 5) do |http|
+      http.request_post(uri.request_uri, body, headers)
+    end
+  rescue StandardError => e
+    "#{e.class}: #{e.message}".first(200)
+  end
 end
