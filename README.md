@@ -78,7 +78,7 @@ Requires Ruby (version pinned in `.ruby-version`, currently 3.4.9), Node (`.node
 
 ```bash
 bin/setup   # bundle install, db:prepare, clears logs/tmp
-bin/dev     # runs Puma + Vite dev server together (Procfile.dev)
+bin/dev     # runs Puma; vite_rails builds assets in-process (autoBuild)
 ```
 
 `bin/setup` accepts `--reset` to wipe and reseed the database, and `--skip-server` to stop before launching `bin/dev`.
