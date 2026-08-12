@@ -7,7 +7,7 @@ primary_region = "syd"
   RAILS_LOG_TO_STDOUT = "true"
 
 [http_service]
-  internal_port = 3000
+  internal_port = 80
   force_https = true
   auto_stop_machines = false
   min_machines_running = 1
