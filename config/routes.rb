@@ -6,6 +6,8 @@ Rails.application.routes.draw do
     resources :messages, only: :create
   end
 
+  post "wtm/webhooks/:workspace_token", to: "wtm/webhooks#create"
+
   # SPA catch-all — API and receiver routes are added ABOVE this line in later tasks
   get "*path", to: "spa#index", constraints: ->(req) { !req.path.start_with?("/api", "/wtm/webhooks", "/vite", "/cable", "/rails") }
 end
