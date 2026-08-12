@@ -2,7 +2,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "vitest run"
+    "test": "vitest run",
+    "build": "vite build --outDir public"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.8",
