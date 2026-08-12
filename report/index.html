@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The missing half of the send API — Nitrosend suppression webhooks</title>
+<link rel="stylesheet" href="report.css">
+</head>
+<body>
+<div class="page">
+
+  <header class="masthead">
+    <p class="eyebrow">Nitrosend — Product Engineer Application</p>
+    <h1 class="title">The missing half of the send API</h1>
+    <p class="dek">Nitrosend tells you a message was accepted. It never tells you what happened next. This is a working prototype of the piece that's missing: outbound webhooks for suppression events.</p>
+    <div class="meta-row">
+      <div class="meta-item"><span class="k">Author</span><span class="v">Jizhe Hou</span></div>
+      <div class="meta-item"><span class="k">Staging</span><a href="https://nitrosend-webhooks-demo.fly.dev/" target="_blank" rel="noreferrer">nitrosend-webhooks-demo.fly.dev</a></div>
+      <div class="meta-item"><span class="k">Repository</span><a href="https://github.com/partwith/nitrosend-webhooks-demo" target="_blank" rel="noreferrer">github.com/partwith/nitrosend-webhooks-demo</a></div>
+      <div class="meta-item"><span class="k">Stack</span><span class="v">Rails 8.1 · Postgres · Redis · GoodJob · Vue 3 · Tailwind</span></div>
+    </div>
+  </header>
+
+  <section class="section">
+    <p class="eyebrow">The gap</p>
+    <h2>A bounce happens, and only Nitrosend finds out</h2>
+    <p class="lede">When a send bounces or draws a spam complaint, Nitrosend does the right thing internally: SES reports the event, the address goes on the suppression list, and the account stops sending to it. That protects Nitrosend's own domain reputation.</p>
+    <p>But the event stops there. Nothing tells the application that triggered the send.</p>
+    <p>Take a concrete case: a booking platform calls the transactional API to send a confirmation. Nitrosend accepts the message, queues it, returns a message ID. From the caller's perspective the send succeeded — that's the last thing its own database knows. If the address hard-bounces an hour later, the caller has no way of finding out unless someone manually checks the Nitrosend dashboard. The customer who never got their confirmation, and the support ticket that follows, both trace back to this gap.</p>
+    <p>This isn't a hypothetical integration problem — it's the exact scenario the product is built around. Nitrosend's own positioning is <em>"connect once, and your AI assistant can manage your entire email operation"</em> for downstream apps and agents. Suppression state is exactly the kind of operational fact a downstream system needs back, and right now it doesn't get it.</p>
+  </section>
+
+  <section class="section">
+    <p class="eyebrow">What's advertised vs. what's there</p>
+    <h2>The marketing copy describes a feature that doesn't exist yet</h2>
+    <p>Worth being precise about this before treating it as a finding — checked against both the marketing site and the live API surface, not assumed.</p>
+    <div class="table-wrap">
+      <table class="evidence">
+        <thead>
+          <tr><th>Claim</th><th>Where</th><th>Reality</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>"Real-time event webhooks for delivery, opens, clicks, bounces, and more"</td>
+            <td><code>/features</code></td>
+            <td><span class="status no">No webhook resource in the API</span></td>
+          </tr>
+          <tr>
+            <td>"Sent, delivered, opened, clicked, bounced, complained, unsubscribed, failed… signed with HMAC-SHA256, retried with exponential backoff"</td>
+            <td><code>/transactional-email-api</code></td>
+            <td><span class="status no">Described in detail, not present</span></td>
+          </tr>
+          <tr>
+            <td>Suppression list exists and is enforced</td>
+            <td>Product behaviour</td>
+            <td><span class="status yes">Confirmed — sends to suppressed addresses are blocked</span></td>
+          </tr>
+          <tr>
+            <td>Suppression list is queryable</td>
+            <td><code>GET /v1/my/suppressions</code></td>
+            <td><span class="status yes">Confirmed — read-only, no way to subscribe to changes</span></td>
+          </tr>
+          <tr>
+            <td>Webhook configuration surface (register endpoint, choose events, view delivery attempts)</td>
+            <td>Dashboard + full API reference</td>
+            <td><span class="status no">Not present anywhere</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The full API reference lists every other configuration surface — Integrations, Domains, Suppressions — and none of them is a webhook. This reads less like a roadmap item and more like documentation that shipped ahead of the feature.</p>
+  </section>
+
+  <section class="section">
+    <p class="eyebrow">Scope</p>
+    <h2>What this prototype covers</h2>
+    <p>Narrowly: outbound <strong>suppression events</strong> — bounce and complaint notifications pushed to a downstream endpoint — rather than the full <code>sent/delivered/opened/clicked</code> taxonomy the marketing copy implies.</p>
+    <p>A bounce or complaint is actionable in a way opens and clicks aren't — retry with a different address, flag a contact record, alert a human. It's also a self-contained, demoable slice that maps directly onto data Nitrosend already has, rather than requiring new tracking infrastructure. Per-brand endpoint scoping beyond a single account and UI for replaying historical events are deliberately out of scope for a prototype.</p>
+  </section>
+
+  <section class="section wide">
+    <p class="eyebrow">What I built</p>
+    <h2>The whole loop, working end to end</h2>
+    <p class="lede">Rather than mock the feature, I built the real pipeline: a small "WeTeachMe" booking app stands in for any downstream integrator, sending confirmations through a Nitrosend-shaped API. When one bounces, a real signed HTTP request goes out, gets verified, and the booking updates live — no refresh.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-body">
+          <h3>Register an endpoint</h3>
+          <p>A URL, which suppression events it should receive, an enable toggle. The events column stays plain text — it's passive configuration, not something that needs attention, so it doesn't get a badge.</p>
+          <div class="figure">
+            <img src="images/demo-webhooks-list.png" alt="Webhooks list showing three endpoints: the built-in WeTeachMe receiver, an external webhook.site endpoint, and a deliberately broken endpoint showing a failing status badge">
+            <figcaption><strong>Three endpoints, one list.</strong> The seeded receiver, an external <code>webhook.site</code> URL for inspecting raw payloads, and one pointed at a dead path — its <code>failing</code> badge is the only colour on the page that isn't the primary action, because it's the only row that needs attention.</figcaption>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-body">
+          <h3>Preview before you send</h3>
+          <p>A test event goes through the real pipeline — signed, delivered, retried on failure — and is marked <code>"test": true</code> so it's distinguishable from a real bounce, but otherwise indistinguishable in behaviour.</p>
+          <div class="figure">
+            <img src="images/demo-test-event.png" alt="Test event modal showing an event-type picker and the exact JSON payload that will be sent for a hard bounce">
+            <figcaption><strong>No surprises at send time.</strong> The exact payload is visible before you commit to firing it.</figcaption>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-body">
+          <h3>Trigger a real bounce</h3>
+          <p>The demo simulates SES with magic addresses — <code>bounce@simulator.demo</code> hard-bounces, <code>complaint@simulator.demo</code> files a spam complaint — so the whole loop is reproducible without touching a real mailbox.</p>
+          <div class="figure-pair">
+            <div class="figure">
+              <img src="images/demo-wtm-before.png" alt="WeTeachMe booking admin before sending, showing four bookings with editable email fields">
+              <figcaption>Before — Sam Whitlock's confirmation hasn't been sent yet.</figcaption>
+            </div>
+            <div class="figure">
+              <img src="images/demo-wtm-flagged.png" alt="WeTeachMe booking admin after the bounce, showing Sam Whitlock's row flagged Email failed with the suppression reason, and future sends blocked">
+              <figcaption>~5 seconds later, unprompted — flagged, with the reason, and the address is now blocked from resending.</figcaption>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-body">
+          <h3>See the delivery, not just the result</h3>
+          <p>Every attempt is logged with its real response — status code, latency, body — so a retry in progress is visible as it happens, not summarised after the fact.</p>
+          <div class="figure">
+            <img src="images/demo-delivery-slideover.png" alt="Delivery detail panel showing a retrying hard bounce delivery with two real failed attempts (404 responses), the next retry countdown, the full signed request payload, headers, and a Ruby signature-verification snippet">
+            <figcaption><strong>This is the deliberately-broken endpoint, mid-retry.</strong> Two real attempts, two real 404 bodies, a live countdown to the third. The panel also shows the exact headers sent and the code to verify them — because "here's a signature" is only useful if verifying it is a five-minute job, not a support ticket.</figcaption>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="figure" style="max-width: 620px; margin-left: auto; margin-right: auto;">
+      <img src="images/demo-dark-mode.png" alt="Endpoint detail page rendered in dark mode, showing the same configuration, signing secret, and delivery log with a properly dark palette">
+      <figcaption style="text-align:center">Dark mode isn't an afterthought — same information density, same restraint.</figcaption>
+    </div>
+  </section>
+
+  <section class="section">
+    <p class="eyebrow">Engineering notes</p>
+    <h2>The parts that don't show up in a screenshot</h2>
+    <div class="notes">
+      <div class="note">
+        <h4>Signing, for real</h4>
+        <p>Every delivery carries <code>X-Nitrosend-Event</code>, <code>X-Nitrosend-Timestamp</code>, and <code>X-Nitrosend-Signature</code>. The signature is <code>HMAC-SHA256(secret, "{timestamp}.{body}")</code>, checked with a constant-time comparison and a ±5 minute timestamp window to block replay. Rotating a secret doesn't break in-flight deliveries — the previous secret keeps verifying for 24 hours.</p>
+      </div>
+      <div class="note">
+        <h4>Retries that actually happen</h4>
+        <p>Failed deliveries retry at 30s, 2m, 10m, 30m — five attempts, then a terminal <code>failed</code> state. Not simulated: the delivery log above is reading real <code>DeliveryAttempt</code> rows written by a real job that really waited.</p>
+      </div>
+      <div class="note">
+        <h4>A public demo that makes real HTTP calls</h4>
+        <p>Since anyone can register an endpoint URL, every delivery is pinned to a DNS-resolved IP that's checked against private/reserved ranges before the request goes out — closing the gap between "this URL looked safe" and "this URL is what we actually connected to."</p>
+      </div>
+      <div class="note">
+        <h4>Every visitor gets their own sandbox</h4>
+        <p>No login. A signed cookie assigns a fresh, isolated workspace on first visit, seeded with demo data, purged after 24 hours of inactivity. Two reviewers can use the staging link at once without seeing each other's clicks.</p>
+      </div>
+    </div>
+
+    <pre class="snippet"><span class="c"># verifying a delivery (Ruby, but the math is the point)</span>
+expected = OpenSSL::HMAC.hexdigest(<span class="s">"SHA256"</span>, signing_secret,
+  <span class="s">"#{request.headers['X-Nitrosend-Timestamp']}.#{request.raw_post}"</span>)
+<span class="k">ok</span> = ActiveSupport::SecurityUtils.secure_compare(expected,
+  request.headers[<span class="s">'X-Nitrosend-Signature'</span>])</pre>
+  </section>
+
+  <section class="section">
+    <p class="eyebrow">Try it</p>
+    <h2>60 seconds, start to finish</h2>
+    <p>Open the staging link, go to <strong>WeTeachMe</strong>, send a confirmation to one of the addresses below, then flip back to <strong>Nitrosend</strong> and watch the delivery log. Every visitor gets a clean, private sandbox — nothing you do affects anyone else looking at the same link.</p>
+    <table class="addresses">
+      <thead><tr><th>Address</th><th>What happens</th></tr></thead>
+      <tbody>
+        <tr><td><code>bounce@simulator.demo</code></td><td>Hard bounce → suppressed → <code>hard_bounce</code> webhook fires</td></tr>
+        <tr><td><code>softbounce@simulator.demo</code></td><td>Soft bounce → not suppressed → <code>soft_bounce</code> webhook fires</td></tr>
+        <tr><td><code>complaint@simulator.demo</code></td><td>Spam complaint → suppressed → <code>complaint</code> webhook fires</td></tr>
+        <tr><td>anything else</td><td>Delivers normally, no event</td></tr>
+      </tbody>
+    </table>
+    <div class="cta-row">
+      <a class="button primary" href="https://nitrosend-webhooks-demo.fly.dev/" target="_blank" rel="noreferrer">Open the staging demo →</a>
+      <a class="button secondary" href="https://github.com/partwith/nitrosend-webhooks-demo" target="_blank" rel="noreferrer">View the repository</a>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <span>Jizhe Hou — Nitrosend Product Engineer application</span>
+    <span>Built with Rails 8.1, Vue 3, and the product's own design system</span>
+  </footer>
+
+</div>
+</body>
+</html>
