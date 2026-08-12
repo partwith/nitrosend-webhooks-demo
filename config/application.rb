@@ -40,6 +40,8 @@ module NitrosendWebhooksDemo
     config.generators.system_tests = nil
 
     config.active_job.queue_adapter = :good_job
+    config.good_job.enable_cron = true
+    config.good_job.cron = { purge_workspaces: { cron: "0 * * * *", class: "PurgeStaleWorkspacesJob" } }
     config.x.ses_delay = 5.seconds
   end
 end
