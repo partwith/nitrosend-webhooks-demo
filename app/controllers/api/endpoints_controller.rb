@@ -3,13 +3,14 @@ module Api
     include WorkspaceScoped
     skip_forgery_protection
     rate_limit to: 20, within: 1.minute, only: :test_events
+    rate_limit to: 10, within: 1.minute, only: %i[create update]
 
     def index = render json: { endpoints: Current.workspace.webhook_endpoints.order(:created_at).map(&:as_api_json) }
     def show = render json: { endpoint: find_endpoint.as_api_json }
 
     def create
       guard = Webhooks::UrlGuard.check(params[:url])
-      return render json: { errors: ["URL #{guard.error}"] }, status: :unprocessable_content unless guard.ok?
+      return render json: { errors: [ "URL #{guard.error}" ] }, status: :unprocessable_content unless guard.ok?
       endpoint = Current.workspace.webhook_endpoints.create!(endpoint_params)
       render json: { endpoint: endpoint.as_api_json }, status: :created
     end
@@ -18,7 +19,7 @@ module Api
       endpoint = find_endpoint
       if params.key?(:url) && params[:url] != endpoint.url
         guard = Webhooks::UrlGuard.check(params[:url])
-        return render json: { errors: ["URL #{guard.error}"] }, status: :unprocessable_content unless guard.ok?
+        return render json: { errors: [ "URL #{guard.error}" ] }, status: :unprocessable_content unless guard.ok?
       end
       endpoint.update!(endpoint_params)
       render json: { endpoint: endpoint.as_api_json }

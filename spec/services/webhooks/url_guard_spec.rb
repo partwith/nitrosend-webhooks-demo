@@ -13,10 +13,10 @@ RSpec.describe Webhooks::UrlGuard do
   end
 
   [
-    ["http://10.0.0.5/x", "10.0.0.5"],
-    ["http://192.168.1.9/x", "192.168.1.9"],
-    ["http://172.16.3.2/x", "172.16.3.2"],
-    ["http://169.254.169.254/meta", "169.254.169.254"],
+    [ "http://10.0.0.5/x", "10.0.0.5" ],
+    [ "http://192.168.1.9/x", "192.168.1.9" ],
+    [ "http://172.16.3.2/x", "172.16.3.2" ],
+    [ "http://169.254.169.254/meta", "169.254.169.254" ]
   ].each do |url, ip|
     it "rejects private/reserved address #{ip}" do
       stub_dns(URI(url).host, ip)
@@ -31,6 +31,11 @@ RSpec.describe Webhooks::UrlGuard do
   it "rejects unresolvable hosts" do
     allow(Resolv).to receive(:getaddress).and_raise(Resolv::ResolvError)
     expect(described_class.check("https://nope.invalid/x")).not_to be_ok
+  end
+
+  it "rejects hosts that take too long to resolve instead of blocking indefinitely" do
+    allow(Timeout).to receive(:timeout).and_raise(Timeout::Error)
+    expect(described_class.check("https://slow.invalid/x")).not_to be_ok
   end
 
   it "allows localhost outside production (dev-mode carve-out)" do

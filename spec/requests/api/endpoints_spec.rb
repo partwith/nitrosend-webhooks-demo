@@ -1,7 +1,11 @@
 require "rails_helper"
 
 RSpec.describe "Endpoints API" do
-  before { allow(Resolv).to receive(:getaddress).and_return("93.184.216.34") }
+  def stub_dns(ip)
+    allow(Resolv).to receive(:getaddress).and_return(ip)
+  end
+
+  before { stub_dns("93.184.216.34") }
 
   it "creates, lists, updates, rotates" do
     post "/api/endpoints", params: { url: "https://hooks.example.com/wh", events: %w[hard_bounce] }, as: :json
@@ -20,7 +24,7 @@ RSpec.describe "Endpoints API" do
   end
 
   it "rejects guarded urls with the guard's message" do
-    allow(Resolv).to receive(:getaddress).and_return("10.0.0.1")
+    stub_dns("10.0.0.1")
     post "/api/endpoints", params: { url: "https://internal.corp/wh", events: %w[hard_bounce] }, as: :json
     expect(response).to have_http_status(:unprocessable_content)
     expect(response.parsed_body["errors"].join).to match(/private/)
