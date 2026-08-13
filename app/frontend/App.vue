@@ -10,7 +10,17 @@ const isWtm = computed(() => route.path.startsWith("/wtm"))
 const deliveries = useDeliveriesStore()
 const bookings = useBookingsStore()
 
-function toggleDark() { document.documentElement.classList.toggle("dark") }
+function toggleDark() {
+  const isDark = document.documentElement.classList.toggle("dark")
+  localStorage.setItem("theme", isDark ? "dark" : "light")
+}
+
+function applyInitialTheme() {
+  const stored = localStorage.getItem("theme")
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
+  const isDark = stored ? stored === "dark" : prefersDark
+  document.documentElement.classList.toggle("dark", isDark)
+}
 
 // ActionCable fallback: if the socket dropped while the tab was backgrounded,
 // refetch whatever's on screen the moment the tab regains focus so the demo
@@ -22,6 +32,7 @@ function refetchOnFocus() {
 }
 
 onMounted(() => {
+  applyInitialTheme()
   subscribeWorkspace((msg) => {
     if (msg.type === "delivery.updated") deliveries.upsert(msg.data)
     if (msg.type === "booking.updated") bookings.upsert(msg.data)
