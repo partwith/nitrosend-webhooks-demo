@@ -94,7 +94,7 @@ bin/dev     # runs Puma; vite_rails builds assets in-process (autoBuild)
 ## Tests
 
 ```bash
-bundle exec rspec   # backend: 52 examples
+bundle exec rspec   # backend: 58 examples
 npm test             # frontend: Vitest
 ```
 

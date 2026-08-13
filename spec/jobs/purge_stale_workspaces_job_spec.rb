@@ -29,9 +29,11 @@ RSpec.describe PurgeStaleWorkspacesJob do
     expect(WebhookDelivery.exists?(delivery.id)).to be false
     expect(DeliveryAttempt.exists?(attempt.id)).to be false
 
-    # The event itself survives (workspace-owned, dependent: :destroy on webhook_events
-    # would have removed it directly) — what matters here is that destroying the
-    # message that fired it nullifies rather than blocks on the FK.
+    # The event is destroyed too (Workspace has its own dependent: :destroy on
+    # webhook_events) — what this regression guards is the destroy *order*:
+    # without Message#webhook_events (dependent: :nullify), Workspace destroying
+    # messages before webhook_events would hit a live FK violation and abort
+    # the whole cascade before it got this far.
     expect(WebhookEvent.exists?(event.id)).to be false
   end
 end

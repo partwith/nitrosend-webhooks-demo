@@ -87,6 +87,22 @@ class WebhookDeliveryJob < ApplicationJob
         return
       end
 
+      # The reservation lock in #perform is released before the outbound HTTP
+      # call, so two concurrent executions of the same job can both reserve a
+      # number and both send. That's a real, known residual risk (a slow
+      # loser making a genuine duplicate delivery) that this class does not
+      # fully close without reintroducing the deadlock the reservation split
+      # was built to avoid — see the comment in #perform.
+      #
+      # What this check DOES close: a slow loser overwriting a newer,
+      # already-terminal outcome. Without it, a late-arriving failure for an
+      # earlier attempt number could regress a delivery a *later* attempt had
+      # already marked "delivered" back to "retrying" — silently scheduling
+      # a third, spurious delivery to an endpoint that already succeeded.
+      # Skip finalizing if a later attempt already recorded a result, or if
+      # the delivery already reached a terminal state.
+      return if delivery.attempts_count > number || %w[delivered failed].include?(delivery.status)
+
       if response.is_a?(Net::HTTPResponse) && response.code.to_i.between?(200, 299)
         delivery.update!(status: "delivered", attempts_count: number, next_retry_at: nil)
       elsif number >= MAX_ATTEMPTS

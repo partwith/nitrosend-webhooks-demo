@@ -2,8 +2,8 @@ module Api
   class EndpointsController < ApplicationController
     include WorkspaceScoped
     skip_forgery_protection
-    rate_limit to: 20, within: 1.minute, only: :test_events
-    rate_limit to: 10, within: 1.minute, only: %i[create update]
+    rate_limit to: 20, within: 1.minute, only: :test_events, name: "test_events"
+    rate_limit to: 10, within: 1.minute, only: %i[create update], name: "mutations"
 
     def index = render json: { endpoints: Current.workspace.webhook_endpoints.order(:created_at).map(&:as_api_json) }
     def show = render json: { endpoint: find_endpoint.as_api_json }
