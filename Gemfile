@@ -49,9 +49,9 @@ gem "vite_rails", "~> 3.11"
 gem "good_job", "~> 4.19"
 gem "redis", "~> 5.4"
 
-gem "rspec-rails", "~> 8.0", groups: [:development, :test]
-gem "webmock", "~> 3.26", groups: [:development, :test]
-gem "capybara", "~> 3.40", groups: [:development, :test]
-gem "selenium-webdriver", "~> 4.47", groups: [:development, :test]
+gem "rspec-rails", "~> 8.0", groups: [ :development, :test ]
+gem "webmock", "~> 3.26", groups: [ :development, :test ]
+gem "capybara", "~> 3.40", groups: [ :development, :test ]
+gem "selenium-webdriver", "~> 4.47", groups: [ :development, :test ]
 
 gem "dockerfile-rails", ">= 1.7", group: :development
