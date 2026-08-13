@@ -14,7 +14,7 @@ module Webhooks
     end
 
     def self.valid_secrets(endpoint, at)
-      secrets = [endpoint.signing_secret]
+      secrets = [ endpoint.signing_secret ]
       if endpoint.previous_secret.present? && endpoint.secret_rotated_at && endpoint.secret_rotated_at > at - WebhookEndpoint::GRACE_WINDOW
         secrets << endpoint.previous_secret
       end

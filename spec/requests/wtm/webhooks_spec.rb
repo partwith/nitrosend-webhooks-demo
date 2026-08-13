@@ -16,7 +16,7 @@ RSpec.describe "WTM receiver" do
     post "/wtm/webhooks/#{workspace.token}", params: body, headers: {
       "Content-Type" => "application/json",
       "X-Nitrosend-Timestamp" => timestamp.to_s,
-      "X-Nitrosend-Signature" => Webhooks::Signer.signature(secret:, timestamp:, body:),
+      "X-Nitrosend-Signature" => Webhooks::Signer.signature(secret:, timestamp:, body:)
     }
   end
 

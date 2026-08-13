@@ -2,7 +2,7 @@ class SimulateSesJob < ApplicationJob
   ROUTES = {
     "bounce@simulator.demo" => "hard_bounce",
     "softbounce@simulator.demo" => "soft_bounce",
-    "complaint@simulator.demo" => "complaint",
+    "complaint@simulator.demo" => "complaint"
   }.freeze
 
   def perform(message_db_id)

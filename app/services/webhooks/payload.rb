@@ -6,7 +6,7 @@ module Webhooks
       "soft_bounce" => { reason: "452 4.2.2 mailbox full",
                          data: { "bounce_type" => "Transient", "diagnostic_code" => "smtp; 452 4.2.2 mailbox full" } },
       "complaint"   => { reason: "abuse",
-                         data: { "complaint_feedback_type" => "abuse" } },
+                         data: { "complaint_feedback_type" => "abuse" } }
     }.freeze
 
     def self.for(event)
@@ -18,7 +18,7 @@ module Webhooks
         "message_id" => event.message&.message_id,
         "recipient" => event.message&.recipient,
         "reason" => d[:reason],
-        "data" => d[:data],
+        "data" => d[:data]
       }
     end
   end

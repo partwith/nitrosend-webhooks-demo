@@ -3,7 +3,7 @@ class WorkspaceSeeder
     { learner_name: "Maya Chen", email: "maya.chen@example.com" },
     { learner_name: "Tom Okafor", email: "t.okafor@example.com" },
     { learner_name: "Ines Duarte", email: "ines.d@example.com" },
-    { learner_name: "Sam Whitlock", email: "bounce@simulator.demo" },
+    { learner_name: "Sam Whitlock", email: "bounce@simulator.demo" }
   ].freeze
 
   def self.seed(workspace, base_url:)

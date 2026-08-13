@@ -7,7 +7,7 @@ module Api
     def index
       render json: {
         bookings: Current.workspace.bookings.order(:id).map(&:as_api_json),
-        suppressions: Current.workspace.suppressions.map { |s| s.as_json(only: %i[email reason event_type created_at]) },
+        suppressions: Current.workspace.suppressions.map { |s| s.as_json(only: %i[email reason event_type created_at]) }
       }
     end
 
