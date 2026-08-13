@@ -10,7 +10,7 @@ module WorkspaceScoped
     workspace = token && Workspace.find_by(token:)
     unless workspace
       workspace = Workspace.create!
-      WorkspaceSeeder.seed(workspace, base_url: request.base_url) if defined?(WorkspaceSeeder)
+      WorkspaceSeeder.seed(workspace, base_url: request.base_url)
       cookies.signed[:workspace_token] = { value: workspace.token, httponly: true, same_site: :lax, expires: 2.days }
     end
     workspace.touch_seen!
