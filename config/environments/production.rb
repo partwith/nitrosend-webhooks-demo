@@ -34,7 +34,7 @@ Rails.application.configure do
   config.good_job.execution_mode = :async
 
   # Allow ActionCable connections from the Fly.io app domain and the configured APP_URL.
-  config.action_cable.allowed_request_origins = [%r{https://.*\.fly\.dev}, ENV["APP_URL"]].compact
+  config.action_cable.allowed_request_origins = [ %r{\Ahttps://[a-z0-9-]+\.fly\.dev\z}, ENV["APP_URL"] ].compact
 
   # Skip http-to-https redirect for the default health check endpoint.
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
