@@ -5,7 +5,7 @@ class WebhookEndpoint < ApplicationRecord
   belongs_to :workspace
   has_many :webhook_deliveries, dependent: :destroy
 
-  validates :url, presence: true, format: { with: %r{\Ahttps?://}, message: "must start with http:// or https://" }
+  validates :url, presence: true, format: { with: %r{\Ahttps?://\S+\z}, message: "must start with http:// or https://" }
   validates :events, presence: true
   validate { errors.add(:events, "contains an unknown event type") unless (events - EVENT_TYPES).empty? }
 
@@ -23,7 +23,7 @@ class WebhookEndpoint < ApplicationRecord
     {
       id:, url:, description:, enabled:, events:, signing_secret:, secret_rotated_at:, created_at:,
       last_delivery_at: webhook_deliveries.maximum(:created_at),
-      recent_failure: webhook_deliveries.where(status: %w[failed retrying]).where(created_at: 24.hours.ago..).exists?,
+      recent_failure: webhook_deliveries.where(status: %w[failed retrying]).where(created_at: 24.hours.ago..).exists?
     }
   end
 end

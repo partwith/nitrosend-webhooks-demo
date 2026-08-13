@@ -25,4 +25,9 @@ RSpec.describe WebhookEndpoint do
     e = workspace.webhook_endpoints.new(url: "ftp://x", events: %w[hard_bounce])
     expect(e).not_to be_valid
   end
+
+  it "rejects a url with an embedded newline and a second scheme" do
+    e = workspace.webhook_endpoints.new(url: "https://example.com/x\njavascript://alert(1)", events: %w[hard_bounce])
+    expect(e).not_to be_valid
+  end
 end
