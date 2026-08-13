@@ -6,7 +6,7 @@ A working prototype of a feature Nitrosend advertises but doesn't have: outbound
 
 When a send bounces or triggers a spam complaint, Nitrosend suppresses the address internally and stops sending to it — but never tells the application that triggered the send. That app's database still thinks the message went out fine. The marketing site and API docs describe a mature webhook system (HMAC-signed payloads, retry policy, an event taxonomy) that has no corresponding implementation — no `Webhook` model, no endpoint anywhere in the API.
 
-Full writeup of the finding, including what was checked against the live product before treating it as real: [`finding-suppression-webhooks.md`](./finding-suppression-webhooks.md).
+That gap was checked against the live product before treating it as real, not just assumed from the docs: sending to a bouncing address does get suppressed internally (the address stops receiving further mail, and Nitrosend's own dashboard reflects the bounce), but nothing in the public API — no webhook, no callback, no polling endpoint — tells the app that originated the send. Short of manually re-checking every recipient's status by hand, the sending app has no way to learn its message never arrived.
 
 This repo builds the missing half: a Nitrosend-styled admin UI for configuring webhook endpoints with real HMAC-signed deliveries and retry logic, plus WeTeachMe (WTM), a small downstream-app stand-in that receives and acts on those webhooks — so you can see both sides of the integration.
 
@@ -82,6 +82,14 @@ bin/dev     # runs Puma; vite_rails builds assets in-process (autoBuild)
 ```
 
 `bin/setup` accepts `--reset` to wipe and reseed the database, and `--skip-server` to stop before launching `bin/dev`.
+
+## Environment variables
+
+- `RAILS_MASTER_KEY` — decrypts `config/credentials.yml.enc`; required in production.
+- `DATABASE_URL` — Postgres connection string; falls back to local defaults in `config/database.yml` when unset.
+- `REDIS_URL` — ActionCable's pubsub backend in production; defaults to `redis://localhost:6379/1`.
+- `HTTP_PORT` — port Thruster proxies to in production (see `fly.toml`); Puma binds here instead of the default.
+- `APP_URL` (optional) — an extra allowed ActionCable origin, alongside the `*.fly.dev` pattern.
 
 ## Tests
 
