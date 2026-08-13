@@ -10,7 +10,11 @@ RSpec.describe WebhookDeliveryJob do
   end
   let(:delivery) { workspace.webhook_deliveries.create!(webhook_endpoint: endpoint, webhook_event: event) }
 
-  before { allow(Resolv).to receive(:getaddress).and_return("93.184.216.34") }
+  def stub_dns(ip)
+    allow(Resolv).to receive(:getaddress).and_return(ip)
+  end
+
+  before { stub_dns("93.184.216.34") }
 
   it "delivers on 200, recording a signed attempt" do
     stub = stub_request(:post, "https://hooks.example.com/wh").to_return(status: 200, body: "ok")
@@ -49,9 +53,30 @@ RSpec.describe WebhookDeliveryJob do
   end
 
   it "fails immediately when the url no longer passes the guard" do
-    allow(Resolv).to receive(:getaddress).and_return("10.0.0.1")
+    stub_dns("10.0.0.1")
     described_class.perform_now(delivery.id)
     expect(delivery.reload.status).to eq("failed")
     expect(delivery.delivery_attempts.sole.error).to match(/private/)
+  end
+
+  it "reserves the attempt number before making the outbound request" do
+    stub_request(:post, "https://hooks.example.com/wh").to_return do
+      # By the time the outbound request is actually sent, attempts_count
+      # must already reflect this attempt — proving the reservation happens
+      # under the lock before we ever touch the network.
+      expect(delivery.reload.attempts_count).to eq(1)
+      { status: 200, body: "ok" }
+    end
+    described_class.perform_now(delivery.id)
+  end
+
+  it "gracefully skips recording if a duplicate execution already claimed the reserved attempt number" do
+    stub_request(:post, "https://hooks.example.com/wh").to_return(status: 200, body: "ok")
+    # Simulate a concurrent duplicate execution that already wrote the
+    # attempt this run is about to reserve and record.
+    delivery.delivery_attempts.create!(number: 1, http_status: 200)
+
+    expect { described_class.perform_now(delivery.id) }.not_to raise_error
+    expect(delivery.delivery_attempts.where(number: 1).count).to eq(1)
   end
 end

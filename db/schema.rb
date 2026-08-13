@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_12_112947) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_13_022634) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -37,6 +37,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_12_112947) do
     t.string "response_excerpt"
     t.datetime "updated_at", null: false
     t.bigint "webhook_delivery_id", null: false
+    t.index ["webhook_delivery_id", "number"], name: "index_delivery_attempts_on_webhook_delivery_id_and_number", unique: true
     t.index ["webhook_delivery_id"], name: "index_delivery_attempts_on_webhook_delivery_id"
   end
 
