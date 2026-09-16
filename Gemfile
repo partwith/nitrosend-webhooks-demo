@@ -52,6 +52,6 @@ gem "redis", "~> 5.4"
 gem "rspec-rails", "~> 8.0", groups: [ :development, :test ]
 gem "webmock", "~> 3.26", groups: [ :development, :test ]
 gem "capybara", "~> 3.40", groups: [ :development, :test ]
-gem "selenium-webdriver", "~> 4.47", groups: [ :development, :test ]
+gem "selenium-webdriver", "~> 4.49", groups: [ :development, :test ]
 
 gem "dockerfile-rails", ">= 1.7", group: :development
