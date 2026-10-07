@@ -330,12 +330,11 @@ GEM
     ruby-vips (2.3.0)
       ffi (~> 1.12)
       logger
-    rubyzip (3.4.1)
+    rubyzip (3.7.0)
     securerandom (0.4.1)
-    selenium-webdriver (4.47.0)
+    selenium-webdriver (4.50.0)
       base64 (~> 0.2)
       logger (~> 1.4)
-      rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2, < 4.0)
       websocket (~> 1.0)
     thor (1.5.0)
@@ -407,7 +406,7 @@ DEPENDENCIES
   redis (~> 5.4)
   rspec-rails (~> 8.0)
   rubocop-rails-omakase
-  selenium-webdriver (~> 4.47)
+  selenium-webdriver (~> 4.50)
   thruster
   tzinfo-data
   vite_rails (~> 3.11)
