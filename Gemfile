@@ -46,7 +46,7 @@ group :development do
 end
 
 gem "vite_rails", "~> 3.11"
-gem "good_job", "~> 4.19"
+gem "good_job", "~> 4.20"
 gem "redis", "~> 5.4"
 
 gem "rspec-rails", "~> 8.0", groups: [ :development, :test ]
