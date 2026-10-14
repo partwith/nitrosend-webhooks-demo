@@ -47,7 +47,7 @@ end
 
 gem "vite_rails", "~> 3.11"
 gem "good_job", "~> 4.19"
-gem "redis", "~> 5.4"
+gem "redis", "~> 6.0"
 
 gem "rspec-rails", "~> 8.0", groups: [ :development, :test ]
 gem "webmock", "~> 3.26", groups: [ :development, :test ]
